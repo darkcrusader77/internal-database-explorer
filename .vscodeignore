@@ -1,0 +1,11 @@
+**/*
+!package.json
+!README.md
+!CHANGELOG.md
+!media/**
+!dist/extension.js
+!docs/**
+!examples/**
+!LICENSE.txt
+!THIRD_PARTY_NOTICES.txt
+!node_modules/**

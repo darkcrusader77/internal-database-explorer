@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.vscode-test/
+*.vsix
+coverage/
+.DS_Store
+.local-postgres/
+artifacts/
+*.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+application_default_credentials.json

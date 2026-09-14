@@ -1,0 +1,105 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, mkdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { createServer } from 'node:net';
+import { Client } from 'pg';
+import { PostgresAdapter, quoteIdentifier } from '../src/adapters/postgres';
+import { DatabaseService } from '../src/core/service';
+import { routeTool } from '../src/core/toolRouter';
+import { profile, finished } from '../test/helpers';
+
+async function main() {
+  const directory = mkdtempSync(join(tmpdir(), 'internal-db-integration-'));
+  const cluster = join(directory, 'cluster');
+  const socket = join(directory, 'socket');
+  mkdirSync(socket);
+  const probe = createServer();
+  await new Promise<void>(resolve => probe.listen(0, '127.0.0.1', resolve));
+  const port = (probe.address() as { port: number }).port;
+  await new Promise<void>(resolve => probe.close(() => resolve()));
+  let started = false;
+  let admin: Client | undefined;
+  const services: DatabaseService[] = [];
+  try {
+    execFileSync('initdb', ['-D', cluster, '-A', 'trust', '-U', 'test_admin', '--no-locale', '-E', 'UTF8'], { stdio: 'pipe' });
+    execFileSync('pg_ctl', ['-D', cluster, '-l', join(directory, 'server.log'), '-o', `-p ${port} -h 127.0.0.1 -k ${socket}`, '-w', 'start'], { stdio: 'pipe' });
+    started = true;
+    admin = new Client({ host: '127.0.0.1', port, user: 'test_admin', database: 'postgres' });
+    await admin.connect();
+    await admin.query(`CREATE ROLE test_reader LOGIN;
+      CREATE SCHEMA engineering;
+      CREATE TABLE engineering.customers (id integer PRIMARY KEY, name text NOT NULL, balance numeric(30,5), parent_id integer REFERENCES engineering.customers(id));
+      INSERT INTO engineering.customers VALUES (1, 'Alice', 12345678901234567890.12345, NULL), (2, 'Bob', 42, 1);
+      COMMENT ON TABLE engineering.customers IS 'Customer fixture';
+      CREATE VIEW engineering.customer_names AS SELECT id, name FROM engineering.customers;
+      CREATE TABLE engineering."odd""name" ("odd column" text);
+      GRANT USAGE ON SCHEMA engineering TO test_reader;
+      GRANT SELECT ON ALL TABLES IN SCHEMA engineering TO test_reader;
+      CREATE FUNCTION engineering.attempt_write() RETURNS integer LANGUAGE plpgsql SECURITY DEFINER AS $$
+      BEGIN INSERT INTO engineering.customers(id,name) VALUES (3,'blocked'); RETURN 3; END $$;`);
+    const p = profile({ host: '127.0.0.1', port, username: 'test_reader' });
+    const adapter = new PostgresAdapter();
+    const store = { list: () => [p], password: async () => undefined };
+    const a = new DatabaseService(store, { postgres: adapter }, () => true);
+    const b = new DatabaseService(store, { postgres: adapter }, () => true);
+    services.push(a, b);
+    const signal = new AbortController().signal;
+    await a.testConnection(p.id);
+    for (const operation of ['list_databases', 'list_schemas', 'list_tables', 'list_columns', 'describe_table', 'search_objects'] as const) {
+      const args = operation === 'list_tables' ? { schema: 'engineering' } : ['list_columns', 'describe_table'].includes(operation) ? { schema: 'engineering', table: 'customers' } : operation === 'search_objects' ? { filter: 'customer' } : {};
+      const result = await a.catalog(p.id, operation, args, 'agent') as any;
+      assert.ok(operation === 'describe_table' ? result.columns.items.length === 4 && result.constraints.items.length >= 2 && result.comment === 'Customer fixture' : result.items.length > 0, operation);
+    }
+    const firstPage = await a.catalog(p.id, 'list_tables', { schema: 'engineering', limit: 1 }, 'agent') as any;
+    assert.equal(firstPage.items.length, 1);
+    assert.equal(firstPage.nextOffset, 1);
+    const quoted = await finished(a.startQuery(p.id, `SELECT * FROM engineering.${quoteIdentifier('odd"name')}`));
+    assert.equal(quoted.status, 'completed');
+    assert.equal(quoted.result!.columns[0].name, 'odd column');
+    const bounded = await finished(a.startQuery(p.id, 'SELECT generate_series(1, 1000000) AS id', [], 'agent', 1000));
+    assert.equal(bounded.result?.rows.length, 1000);
+    assert.equal(bounded.result?.truncated, true);
+    const exact = await finished(a.startQuery(p.id, 'SELECT generate_series(1, 1000) AS id'));
+    assert.equal(exact.result?.truncated, false);
+    const empty = await finished(a.startQuery(p.id, 'SELECT id FROM engineering.customers WHERE false'));
+    assert.equal(empty.result?.rows.length, 0);
+    assert.equal(empty.result?.columns[0].name, 'id');
+    const bound = await finished(a.startQuery(p.id, 'SELECT name, balance FROM engineering.customers WHERE id=$1', [1]));
+    assert.equal(bound.result?.rows[0][0], 'Alice');
+    assert.equal(bound.result?.rows[0][1], '12345678901234567890.12345');
+    const wide = await finished(a.startQuery(p.id, "SELECT repeat('x',20000) AS text"));
+    assert.equal(wide.result?.cellsTruncated, true);
+    const byteBounded = await finished(a.startQuery(p.id, "SELECT generate_series(1, 1000) AS id, repeat('x',16000) AS text"));
+    assert.equal(byteBounded.status, 'completed');
+    assert.equal(byteBounded.result?.truncated, true);
+    assert.ok(byteBounded.result!.rows.length < 1000, 'Byte cap must stop fetching before the row cap');
+    assert.ok(Buffer.byteLength(JSON.stringify(byteBounded.result!.rows)) < 2 * 1024 * 1024);
+    const write = await finished(a.startQuery(p.id, 'SELECT engineering.attempt_write()'));
+    assert.equal(write.status, 'failed');
+    assert.match(write.error!, /read-only/);
+    assert.equal((await admin.query('SELECT count(*) FROM engineering.customers')).rows[0].count, '2');
+    const slowA = a.startQuery(p.id, 'SELECT pg_sleep(10)');
+    const slowB = b.startQuery(p.id, 'SELECT pg_sleep(0.3), 2 AS id');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    a.cancel(p.id, slowA.id);
+    assert.equal((await finished(slowA)).status, 'cancelled');
+    assert.equal((await finished(slowB)).status, 'completed');
+    assert.throws(() => b.getResults(p.id, slowA.id, 'agent'), /this VS Code window/);
+    const timeout = await finished(a.startQuery(p.id, 'SELECT pg_sleep(10)', [], 'user', 10, 1000));
+    assert.equal(timeout.status, 'failed');
+    assert.match(timeout.error!, /time|timeout/);
+    const tool = await routeTool(a, 'internaldb_run_query', { connectionId: p.id, sql: 'SELECT 42 AS answer' }, signal) as { queryId: string };
+    await finished(a.getExecution(p.id, tool.queryId));
+    const toolResult = await routeTool(a, 'internaldb_get_query_results', { connectionId: p.id, queryId: tool.queryId }, signal) as any;
+    assert.equal(toolResult.rows[0][0], 42);
+    process.stdout.write('PASS: PostgreSQL catalog, descriptions, paging, quoted identifiers, parameters, exact numeric values, bounded rows/cells, read-only enforcement, real cancellation, timeout, independent sessions, and tool routing.\n');
+  } finally {
+    services.forEach(s => s.dispose());
+    await admin?.end().catch(() => undefined);
+    if (started) execFileSync('pg_ctl', ['-D', cluster, '-m', 'immediate', '-w', 'stop'], { stdio: 'pipe' });
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+main().catch(error => { process.stderr.write(`${error.stack ?? error}\n`); process.exitCode = 1; });

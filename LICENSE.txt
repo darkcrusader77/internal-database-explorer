@@ -1,0 +1,4 @@
+UNLICENSED
+
+This project is private internal software. No public license is granted.
+Third-party components retain their own licenses; see THIRD_PARTY_NOTICES.txt.
