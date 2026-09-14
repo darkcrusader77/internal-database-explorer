@@ -18,7 +18,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@google-cloud/bigquery": "^9.0.3",
     "ajv": "^8.20.0",
@@ -167,7 +167,7 @@
     "viewsWelcome": [
       {
         "view": "internalDatabase.connections",
-        "contents": "Browse databases and run bounded queries from this window.\n[Add Connection](command:internalDatabase.addConnection)\nPostgreSQL · SQL Server · Oracle · Snowflake · BigQuery"
+        "contents": "Browse databases and run bounded queries from this window.\n[Add Connection](command:internalDatabase.addConnection)\nPostgreSQL \u00b7 SQL Server \u00b7 Oracle \u00b7 Snowflake \u00b7 BigQuery"
       }
     ],
     "menus": {
@@ -528,8 +528,8 @@
         "displayName": "Run Read Query",
         "toolReferenceName": "db_run_query",
         "canBeReferencedInPrompt": true,
-        "modelDescription": "Start one read-only SELECT in the connection’s SQL dialect or CTE. Returns a window-local queryId immediately; call get_query_results to poll. Maximum 1000 retained rows, 2 MiB retained data, and 16 KiB per cell; use SQL aggregation for larger results. No writes, multi-statements, or transaction control. Requires connection-level Copilot opt-in.",
-        "userDescription": "Start one read-only SELECT in the connection’s SQL dialect or CTE. Returns a window-local queryId immediately; call get_query_results to poll. Maximum 1000 retained rows, 2 MiB retained data, and 16 KiB per cell; use SQL aggregation for larger results. No writes, multi-statements, or transaction control. Requires connection-level Copilot opt-in.",
+        "modelDescription": "Start one read-only SELECT in the connection\u2019s SQL dialect or CTE. Returns a window-local queryId immediately; call get_query_results to poll. Maximum 1000 retained rows, 2 MiB retained data, and 16 KiB per cell; use SQL aggregation for larger results. No writes, multi-statements, or transaction control. Requires connection-level Copilot opt-in.",
+        "userDescription": "Start one read-only SELECT in the connection\u2019s SQL dialect or CTE. Returns a window-local queryId immediately; call get_query_results to poll. Maximum 1000 retained rows, 2 MiB retained data, and 16 KiB per cell; use SQL aggregation for larger results. No writes, multi-statements, or transaction control. Requires connection-level Copilot opt-in.",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -637,5 +637,9 @@
   },
   "overrides": {
     "toml": "^4.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darkcrusader77/internal-database-explorer.git"
   }
 }

@@ -52,6 +52,6 @@ Result paging navigates retained rows; it does not keep a server cursor open ind
 
 The preview's profile storage and query state are described in [SESSION_MODEL.md](SESSION_MODEL.md). It has no telemetry or query HTTP service of its own. Snowflake browser OAuth temporarily opens a driver-managed loopback callback; driver telemetry and authentication behavior follow the vendor SDKs. Copilot tool results are intentionally shared with the configured Copilot model when the user enables access for a connection.
 
-Before internal rollout, validate actual authentication/SSO needs, TLS certificates, supported OS/remote hosts, minimum VS Code version, and a live Copilot discovery/query workflow. Review and set the internal publisher identity. The package is private and marked `UNLICENSED`; it is not published to a marketplace by the build.
+Before internal rollout, validate actual authentication/SSO needs, TLS certificates, supported OS/remote hosts, minimum VS Code version, and a live Copilot discovery/query workflow. Review and set the internal publisher identity. The source is MIT licensed. The npm `private` flag prevents accidental npm publication; it does not restrict use or modification. The build does not publish to a marketplace.
 
 Production drivers remain external to the extension bundle so their runtime assets are preserved. VSCE packages the production dependency graph; dev dependencies and local sample credentials are excluded. `THIRD_PARTY_NOTICES.txt` covers packaged production dependencies.

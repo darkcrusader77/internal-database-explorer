@@ -64,3 +64,9 @@ Stage 1 is the planned implementation scope. Stage 2 is deferred and will be pri
 - Optional MCP support in Stage 2 for other agent clients or remote services.
 
 Plans and implementation status recorded September 14, 2026. Open implementation questions and source references are included in the stage documents.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE.txt), copyright 2026 Vincent Martino. You may use it commercially, modify it, and maintain a private company fork without publishing your changes. Include the copyright and license notice with copies or substantial portions of the software.
+
+Third-party dependencies retain their own licenses; see [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt). Your organization's software approval process still applies.
