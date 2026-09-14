@@ -15,5 +15,5 @@ for (const directory of productionPaths) {
   packages.set(`${info.name}@${info.version}`,  `${info.name} ${info.version}\nLicense: ${info.license ?? 'See notice below'}\n` +
     licenses.map(name => readFileSync(join(directory, name), 'utf8')).join('\n'));
 }
-writeFileSync('THIRD_PARTY_NOTICES.txt', 'Third-party components bundled in Internal Database Explorer\n\n' +
+writeFileSync('THIRD_PARTY_NOTICES.txt', 'Third-party components bundled in Database Explorer\n\n' +
   [...packages.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, notice]) => notice).join('\n\n----------------------------------------\n\n'));

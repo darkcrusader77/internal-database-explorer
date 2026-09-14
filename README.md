@@ -1,6 +1,6 @@
-# Internal Database Explorer for VS Code
+# Database Explorer for VS Code
 
-An internally maintained VS Code extension for SQL Server, Oracle, PostgreSQL, Snowflake, and BigQuery, with tools that GitHub Copilot agents can call directly.
+An open-source VS Code extension for SQL Server, Oracle, PostgreSQL, Snowflake, and BigQuery, with tools that GitHub Copilot agents can call directly.
 
 The project will recreate the core database browsing and query workflows we need from Database Client. It will use our own implementation and approved database drivers.
 
@@ -26,6 +26,8 @@ For Copilot, enable the extension's tools in the chat tool picker. Try: “Use t
 Need sample data? Run `npm run sample:start` to create a local database with synthetic customers, orders, payments, and reporting views. See [sample database setup](docs/SAMPLE_DATABASE.md) for connection details and lifecycle commands.
 
 To create an installable VSIX, run `npm run package`. Install through **Extensions → … → Install from VSIX** using your organization's approved route. The placeholder publisher is `internal-tools` and should be changed to your organization's identifier before distribution.
+
+If upgrading from the earlier **Internal Database Explorer** preview, VS Code treats the renamed package as a different extension. Disable the earlier extension before installing this one, then recreate your connection profiles; saved profiles and credentials do not transfer automatically.
 
 ## Implemented in this preview
 

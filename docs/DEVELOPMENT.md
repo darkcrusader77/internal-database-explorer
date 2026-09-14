@@ -21,7 +21,7 @@ Press F5 in this repository to launch the extension in an Extension Development 
 | `npm run test:integration` | Creates a disposable local PostgreSQL cluster and verifies all metadata tools, exact numeric values, parameters, million-row and byte-limit truncation, read-only enforcement, cancellation, timeout, and tool routing. |
 | `npm run test:host` | Launches an isolated VS Code test host and checks activation, commands, native language-model tool registration, and explorer refresh. |
 | `npm run test:form` | Uses Playwright to exercise connection forms, SQL run controls, bottom-panel results, and per-window selection against the local sample database; records screenshots in `artifacts/`. Requires `npm run sample:start` first. |
-| `npm run package` | Builds and produces `internal-database-explorer-0.3.0.vsix`. |
+| `npm run package` | Builds and produces `database-explorer-0.3.0.vsix`. |
 
 Integration tests require `initdb` and `pg_ctl` on PATH and a non-root account. They initialize their own temporary cluster, bind to loopback on an ephemeral port, and stop/remove it in cleanup. They do not connect to an existing database or use work credentials. A forcibly killed test process can require manual cleanup of its own `internal-db-integration-*` temporary directory and server.
 

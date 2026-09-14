@@ -9,7 +9,7 @@ async function main() {
   const directory = mkdtempSync(join(tmpdir(), 'db-form-ui-'));
   const user = join(directory, 'user');
   mkdirSync(join(directory, 'extensions'));
-  symlinkSync(resolve('.'), join(directory, 'extensions/internal-tools.internal-database-explorer-0.3.0'), 'dir');
+  symlinkSync(resolve('.'), join(directory, 'extensions/internal-tools.database-explorer-0.3.0'), 'dir');
   mkdirSync(join(user, 'User'), { recursive: true });
   writeFileSync(join(user, 'User/settings.json'), JSON.stringify({ 'workbench.startupEditor': 'none', 'telemetry.telemetryLevel': 'off', 'window.commandCenter': false, 'chat.disableAIFeatures': true }));
   const executable = process.env.VSCODE_EXECUTABLE ?? '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
@@ -84,7 +84,7 @@ async function main() {
     await editor.locator('#password').fill(sample.password);
     await editor.locator('#test').click();
     await expect(editor.locator('#feedback')).toContainText('Connection successful', { timeout: 15_000 });
-    const profiles = join(user, 'User/globalStorage/internal-tools.internal-database-explorer/connections.json');
+    const profiles = join(user, 'User/globalStorage/internal-tools.database-explorer/connections.json');
     expect(existsSync(profiles)).toBe(false);
     mkdirSync('artifacts', { recursive: true });
     await editor.locator('#title').scrollIntoViewIfNeeded();

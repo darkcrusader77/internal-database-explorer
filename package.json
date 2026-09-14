@@ -1,7 +1,7 @@
 {
-  "name": "internal-database-explorer",
+  "name": "database-explorer",
   "version": "0.3.0",
-  "description": "Internal database explorer for PostgreSQL, SQL Server, Oracle, Snowflake, and BigQuery with isolated window sessions and native Copilot tools.",
+  "description": "Database explorer for PostgreSQL, SQL Server, Oracle, Snowflake, and BigQuery with isolated window sessions and native Copilot tools.",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "npm run check && node scripts/build.mjs",
@@ -44,7 +44,7 @@
     "tsx": "^4.23.13",
     "typescript": "^5.9.3"
   },
-  "displayName": "Internal Database Explorer",
+  "displayName": "Database Explorer",
   "publisher": "internal-tools",
   "private": true,
   "engines": {
@@ -640,6 +640,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/darkcrusader77/internal-database-explorer.git"
+    "url": "https://github.com/darkcrusader77/database-explorer.git"
   }
 }

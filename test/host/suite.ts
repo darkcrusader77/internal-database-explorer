@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
 export async function run() {
-  const extension = vscode.extensions.getExtension('internal-tools.internal-database-explorer');
+  const extension = vscode.extensions.getExtension('internal-tools.database-explorer');
   assert.ok(extension, 'Development extension should be installed in the isolated test host');
   const api = await extension.activate();
   assert.ok(api.sessionId);

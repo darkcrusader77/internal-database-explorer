@@ -1,4 +1,4 @@
-Third-party components bundled in Internal Database Explorer
+Third-party components bundled in Database Explorer
 
 @aws-crypto/sha256-js 5.2.0
 License: Apache-2.0
